@@ -1,0 +1,21 @@
+engines:
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - python:
+  fixme:
+    enabled: true
+  pep8:
+    enabled: true
+ratings:
+  paths:
+  - "mlbgame/*.py"
+exclude_paths:
+  - "description.rst"
+  - "examples/*"
+  - "LICENSE"
+  - "mlbgame/default.xml"
+  - "README.md"
+  - "setup.py"
+  - "tests/*"

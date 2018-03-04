@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <table class="table table-bordered table-responsive w-100 d-block d-md-table">
+        <caption><p>PLAYER LIST</p></caption>
+        <tr>
+            <th>#   </th>
+            <th>Player </th>
+            <th>April  </th>
+            <th>May    </th>
+            <th>June   </th>
+            <th>July   </th>
+            <th>August </th>
+            <th>Sept   </th>
+            <th>Total  </th>
+        </tr>
+        {% for row in rows %}
+        <tr>
+            <td class="text-left">{{row[0]}}</td>
+            <td class="text-right">{{row[1]}}</td>
+            <td class="text-right">{{row[2]}}</td>
+            <td class="text-right">{{row[3]}}</td>
+            <td class="text-right">{{row[4]}}</td>
+            <td class="text-right">{{row[5]}}</td>
+            <td class="text-right">{{row[6]}}</td>
+            <td class="text-right">{{row[7]}}</td>
+            <td class="text-right">{{row[8]}}</td>
+            <td class="text-right">{{row[9]}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}}

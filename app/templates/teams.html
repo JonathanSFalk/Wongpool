@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <table class="table table-bordered table-responsive w-100 d-block d-md-table">
+        <caption><p>Teams</p></caption>
+        <tr>
+            <th>Team</th>
+            <th>Players and Results</th>
+            <th class="text-right">April</th>
+            <th class="text-right">May</th>
+            <th class="text-right">June</th>
+            <th class="text-right">July</th>
+            <th class="text-right">August</th>
+            <th class="text-right">Sept</th>
+            <th class="text-right">Total</th>
+        </tr>
+        {%- for row in rows%}
+            {%- if row.type=="Team" %}
+                <tr>
+                        <td colspan="9" class="text-left">{{ row.contents }}</colspan> </td>
+                </tr>
+            {%- elif row.type=="Player" %}
+                        <tr><td>   </td><td class="text-left class="> {{ row.contents }}</td>
+            {%- elif row.type=="Month" %}
+                        <td class="text-right"> {{ row.contents }}</td>
+            {%- else %}
+        <td class=""text-right"> {{ row.contents }}</td></tr>
+            {% endif %}
+        {%- endfor %}
+    </table>
+
+{% endblock %}}

@@ -1,12 +1,13 @@
-from google.appengine.ext import ndb
+from google.appengine.ext import ndb,deferred
 from flask import render_template, flash, redirect, url_for, request
 from werkzeug.urls import url_parse
 from app import app
-from app.forms import LoginForm
+from app.forms import LoginForm, TwoDatesForm
 from flask_login import current_user, login_user, login_required
 from app.models import User
 import wp
 import cfg
+import logging
 
 
 @app.route('/')
@@ -33,14 +34,18 @@ def players():
     data=wp.pdat
     for p in data:
         n=p.wongid
-        pmat.append([n,p.fullname,wp.phomers(n,4),wp.phomers(n,4),wp.phomers(n,6),wp.phomers(n,7),wp.phomers(n,8),wp.phomers(n,9),wp.totalforplayer(n)])
+        pmat.append([n,p.fullname,wp.ph(n,4),wp.ph(n,5),wp.ph(n,6),wp.ph(n,7),wp.ph(n,8),wp.ph(n,9),wp.totalforplayer(n)])
         pmat.sort()
     return render_template('players.html', title='Player Results', rows=pmat)
 
-@app.route('/admin')
+@app.route('/admin', methods=['GET','POST'])
 @login_required
 def admin():
-    return render_template('admin.html')
+    form = TwoDatesForm()
+    if form.is_submitted():
+        logging.info(repr(form.datestart.data) + " " + repr(form.dateend.data))
+        deferred.defer(wp.makehomers,form.datestart.data,form.dateend.data)
+    return render_template('admin.html',form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

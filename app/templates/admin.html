@@ -1,8 +1,24 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-<h1>Danny Wong Home Run Pool</h1>
-<p>This is the secret admin page</p>
-
-
+    <h1>This is the secret admin page</h1>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.datestart.label }}<br>
+            {{ form.datestart(size=32) }}<br>
+            {% for error in form.datestart.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.dateend.label }}<br>
+            {{ form.dateend(size=32) }}<br>
+            {% for error in form.dateend.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
 {% endblock %}
+

@@ -18,6 +18,7 @@
       <root url="file://$USER_HOME$/AppData/Local/Google/Cloud SDK/google-cloud-sdk/platform/google_appengine/lib/google-api-python-client" />
       <root url="file://$USER_HOME$/AppData/Local/Google/Cloud SDK/google-cloud-sdk/platform/google_appengine/lib/graphy" />
       <root url="file://$USER_HOME$/AppData/Local/Google/Cloud SDK/google-cloud-sdk/platform/google_appengine/lib/grizzled" />
+      <root url="file://$USER_HOME$/AppData/Local/Google/Cloud SDK/google-cloud-sdk/platform/google_appengine/lib/grpcio-1.9.1" />
       <root url="file://$USER_HOME$/AppData/Local/Google/Cloud SDK/google-cloud-sdk/platform/google_appengine/lib/httplib2" />
       <root url="file://$USER_HOME$/AppData/Local/Google/Cloud SDK/google-cloud-sdk/platform/google_appengine/lib/ipaddr" />
       <root url="file://$USER_HOME$/AppData/Local/Google/Cloud SDK/google-cloud-sdk/platform/google_appengine/lib/itsdangerous-0.24" />

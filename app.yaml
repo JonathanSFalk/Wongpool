@@ -11,3 +11,6 @@ handlers:
 libraries:
 - name: lxml
   version: latest
+
+builtins:
+- deferred: on

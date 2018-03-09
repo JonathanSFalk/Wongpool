@@ -8,7 +8,7 @@ from app.models import User
 import wp
 import cfg
 import logging
-
+import models
 
 @app.route('/')
 @app.route('/index')
@@ -30,12 +30,16 @@ def teams():
 @app.route('/Players')
 @app.route('/players')
 def players():
+    def sk(x):
+        return int(x[0])
     pmat=[]
     data=wp.pdat
+    names = wp.pnums
+    ph = wp.phmdat
     for p in data:
         n=p.wongid
-        pmat.append([n,p.fullname,wp.ph(n,4),wp.ph(n,5),wp.ph(n,6),wp.ph(n,7),wp.ph(n,8),wp.ph(n,9),wp.totalforplayer(n)])
-        pmat.sort()
+        pmat.append([n,names[n],ph[n][0],ph[n][1],ph[n][2],ph[n][3],ph[n][4],ph[n][5],sum(ph[n])])
+        pmat.sort(key=sk)
     return render_template('players.html', title='Player Results', rows=pmat)
 
 @app.route('/admin', methods=['GET','POST'])
@@ -44,7 +48,7 @@ def admin():
     form = TwoDatesForm()
     if form.is_submitted():
         logging.info(repr(form.datestart.data) + " " + repr(form.dateend.data))
-        deferred.defer(wp.makehomers,form.datestart.data,form.dateend.data)
+        wp.gethomers(wp.pdat,form.datestart.data,form.dateend.data)
     return render_template('admin.html',form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -53,7 +57,7 @@ def login():
         return redirect(url_for('index'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query(User.username == form.username.data).get()
+        user = models.poolboss
         if user is None or not user.check_password(form.password.data):
             flash('Invalid username or password')
             return redirect(url_for('login'))

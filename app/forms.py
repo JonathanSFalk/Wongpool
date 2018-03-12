@@ -15,3 +15,24 @@ class TwoDatesForm(FlaskForm):
     dateend=DateField('Ending Date')
     submit = SubmitField('Go')
 
+class GetTSortField(FlaskForm):
+    rbtnp = SubmitField("Team")
+    rbtnno = SubmitField("#")
+    rbtn1 =  SubmitField("April")
+    rbtn2 = SubmitField("May")
+    rbtn3 =  SubmitField("June")
+    rbtn4 =  SubmitField("July")
+    rbtn5 =  SubmitField("August")
+    rbtn6 =  SubmitField("September")
+    rbtnt =  SubmitField("Total")
+
+class GetPSortField(FlaskForm):
+    rbtnp = SubmitField("Team")
+    rbtnno = SubmitField("#")
+    rbtn1 =  SubmitField("April")
+    rbtn2 = SubmitField("May")
+    rbtn3 =  SubmitField("June")
+    rbtn4 =  SubmitField("July")
+    rbtn5 =  SubmitField("August")
+    rbtn6 =  SubmitField("September")
+    rbtnt =  SubmitField("Total")

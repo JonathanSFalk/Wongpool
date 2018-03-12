@@ -2,7 +2,25 @@
 
 {% block app_content %}
 <h1>Danny Wong Home Run Pool</h1>
-<p>Other Stuff</p>
+
+<p class="lead">Welcome to the 2018 Danny Wong Pool.  This new website isn't finished yet, but it will be much better than last year's.
+All columns in all tables are sortable by clicking the header of that column.</p>
+
+<div class="container-fluid">
+<div class="row">
+    <div class="col-xs-6 col-md-4"><strong><u>Winners by Month</u></strong></div>
+    <div class="col-xs-6 col-md-4"><strong><u>Current Month Leaders</u></strong></div>
+    <div class="col-xs-6 col-md-4"><strong><u>Overall Leaders</u></strong></div>
+</div>
+{%- for row in rows %}
+<div class="row">
+  <div class="col-xs-6 col-md-4">{{row[0]}}</div>
+  <div class="col-xs-6 col-md-4">{{row[1]}}</div>
+  <div class="col-xs-6 col-md-4">{{row[2]}}</div>
+</div>
+<br>
+{% endfor %}
+</div>
 {% endblock %}}
 
 

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <table class="table table-bordered table-responsive w-100 d-block d-md-table">
+        <caption><p><h2>Teams By Player</h2></p></caption>
+        <tr>
+            <th>Player</th>
+            <th>Teams</th>
+        </tr>
+        {% for row in rows %}
+            {% if row[1] != ['Null'] %}
+            <tr>
+                <td class="text-center">{{row[0]}}</td>
+                <td>
+                    {% for team in row[1]|batch(9," ") %}
+                    <ul>
+
+                        <ul class="list-group row">
+    {% if team[0] != 'Null' %} <li class="list-group-item col-xs-6">{{team[0]}}</li> {% endif %}
+     {% if team[1] != 'Null' %}<li class="list-group-item col-xs-6">{{team[1]}}</li> {% endif %}
+     {% if team[2] != 'Null' %}<li class="list-group-item col-xs-6">{{team[2]}}</li> {% endif %}
+     {% if team[3] != 'Null' %}<li class="list-group-item col-xs-6">{{team[3]}}</li> {% endif %}
+     {% if team[4] != 'Null' %}<li class="list-group-item col-xs-6">{{team[4]}}</li> {% endif %}
+     {% if team[5] != 'Null' %}<li class="list-group-item col-xs-6">{{team[5]}}</li> {% endif %}
+     {% if team[6] != 'Null' %}<li class="list-group-item col-xs-6">{{team[6]}}</li> {% endif %}
+     {% if team[7] != 'Null' %}<li class="list-group-item col-xs-6">{{team[7]}}</li> {% endif %}
+     {% if team[8] != 'Null' %}<li class="list-group-item col-xs-6">{{team[8]}}</li> {% endif %}
+</ul>
+                        {#  <li class="text-left">{{team}}</li> #}
+
+                    </ul>
+                    {% endfor %}
+                </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+    </table>
+{% endblock %}}

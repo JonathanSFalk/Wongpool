@@ -1,32 +1,34 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-    <table class="table table-bordered table-responsive w-100 d-block d-md-table">
-        <caption><p>Teams</p></caption>
+<form action="" method="POST">
+    <table class="table table-bordered table-responsive table-hover w-100 d-block d-md-table">
+        <caption><h2><strong><em>Teams: </em></strong>Click On Any Header to Sort</h2></caption>
         <tr>
-            <th>Team</th>
-            <th>Players and Results</th>
-            <th class="text-right">April</th>
-            <th class="text-right">May</th>
-            <th class="text-right">June</th>
-            <th class="text-right">July</th>
-            <th class="text-right">August</th>
-            <th class="text-right">Sept</th>
-            <th class="text-right">Total</th>
+            <th style="text-align:center">{{form.rbtnno()}}</th>
+            <th style="text-align:center">{{form.rbtnp()}}</th>
+            <th style="text-align:center">{{form.rbtn1()}}</th>
+            <th style="text-align:center">{{form.rbtn2()}}</th>
+            <th style="text-align:center">{{form.rbtn3()}}</th>
+            <th style="text-align:center">{{form.rbtn4()}}</th>
+            <th style="text-align:center">{{form.rbtn5()}}</th>
+            <th style="text-align:center">{{form.rbtn6()}}</th>
+            <th style="text-align:center">{{form.rbtnt()}}</th>
         </tr>
         {%- for row in rows%}
             {%- if row.type=="Team" %}
                 <tr>
-                        <td colspan="9" class="text-left">{{ row.contents }}</colspan> </td>
-                </tr>
+                        <td class="text-left">{{ row.contents }} </td>
+            {%- elif row.type=="Name" %}
+                    <td colspan="8" class="text-left">{{ row.contents }}</colspan> </td> </tr>
             {%- elif row.type=="Player" %}
                         <tr><td>   </td><td class="text-left class="> {{ row.contents }}</td>
             {%- elif row.type=="Month" %}
                         <td class="text-right"> {{ row.contents }}</td>
             {%- else %}
-        <td class=""text-right"> {{ row.contents }}</td></tr>
+        <td class="text-right"> {{ row.contents }}</td></tr>
             {% endif %}
         {%- endfor %}
     </table>
-
+</form>
 {% endblock %}}

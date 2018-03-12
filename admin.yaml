@@ -1,0 +1,16 @@
+runtime: python27
+api_version: 1
+threadsafe: False
+
+handlers:
+- url: /static
+  static_dir: static
+- url: /
+  script: admin.admin
+
+service: 1
+
+libraries:
+- name: lxml
+  version: latest
+

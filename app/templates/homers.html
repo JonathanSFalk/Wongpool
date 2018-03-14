@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Home Runs By Date</h1>
+    <h3>Select Starting Date and Duration in 2017</h3>
+
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.datestart.label }}<br>
+            {{ form.datestart(size=32) }}<br>
+            {% for error in form.datestart.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.datenum.label }}<br>
+            {{ form.datenum(size=5) }}<br>
+            {% for error in form.datenum.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.rbtnd() }}</p>
+    <table class="table table-bordered table-responsive w-100 d-block d-md-table">
+        <th style="text-align:center">{{form.rbtndt()}}</th><th  style="text-align:center">{{form.rbtnp()}}</th><th>Homers</th>
+        {% for row in toprint %}
+        <tr>
+        {% if loop.index == 1 %}
+            <td> {{row[0]}} </td>
+            <td> {{row[1]}} </td>
+            <td> {{row[2]}} </td>
+        {% else %}
+            {% set lastdate = loop.previtem[0] %}
+            {% set lastplayer = loop.previtem[1] %}
+            {% if row[0] == lastdate and sortfield=="d" %}
+                <td></td>
+            {% else %}
+                <td> {{row[0]}} </td>
+            {% endif %}
+            {% if row[1] == lastplayer and sortfield=="p" %}
+                <td></td>
+            {% else %}
+                <td> {{row[1]}} </td>
+            {% endif %}
+            <td>{{row[2]}}</td>
+        {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+    </form>
+{% endblock %}
+

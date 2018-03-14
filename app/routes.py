@@ -1,31 +1,41 @@
-from google.appengine.ext import ndb,deferred
 from flask import render_template, flash, redirect, url_for, request
 from werkzeug.urls import url_parse
 from app import app
-from app.forms import LoginForm, TwoDatesForm,  GetPSortField, GetTSortField
+from app.forms import LoginForm, TwoDatesForm,  GetSortField
 from flask_login import current_user, login_user, login_required
-from app.models import User
+import datetime
 import wp
 import cfg
 import logging
 import models
 
+
 @app.route('/')
 @app.route('/index')
 def index():
-    results = ['April','#1','#1'],['May','#2','#2'],['June','#3','#3'],['July','#4','#4'],['August','#5','#5'],['September','',''],['Total','','']
-    return render_template('home.html',rows=results, dmax=wp.dmax)
+    results = wp.getresults()
+    mstands = [x[1] for x in results if x[0]==1]
+    cstands = [x[1] for x in results if x[0]==2]
+    tstands = [x[1] for x in results if x[0]==3]
+    return render_template('home.html',mstand=mstands, cstand=cstands, tstand=tstands, dmax=wp.dmax)
 
-@app.route('/Current')
-@app.route('/current')
-def current():
-    prows=wp.monthstandings(cfg.thismonth)
-    return render_template('current.html', title='Current Standings', rows=prows, month="Total", dmax=wp.dmaxstr)
+@app.route('/Standings', methods=['GET','POST'])
+@app.route('/standings', methods=['GET','POST'])
+def standings():
+    form = GetSortField()
+    if form.is_submitted():
+        sortcol = 2*form.rbtn1.data + 3*form.rbtn2.data + 4*form.rbtn3.data + 5*form.rbtn4.data + 6*form.rbtn5.data + 7*form.rbtn6.data + 8*form.rbtnt.data + 0*form.rbtnno.data + 1*form.rbtntm.data
+        sortcol = int(sortcol)
+#        logging.info("SORTCOL" + str(sortcol))
+    else:
+        sortcol = 1
+    prows=wp.teamnoplay(sortcol)
+    return render_template('standings.html', title='Standings', form=form, rows=prows, dmax=wp.dmaxstr)
 
 @app.route('/Teams', methods=['GET','POST'])
 @app.route('/teams', methods=['GET','POST'])
 def teams():
-    form = GetTSortField()
+    form = GetSortField()
     if form.is_submitted():
         sortcol = 2*form.rbtn1.data + 3*form.rbtn2.data + 4*form.rbtn3.data + 5*form.rbtn4.data + 6*form.rbtn5.data + 7*form.rbtn6.data + 8*form.rbtnt.data + 0*form.rbtnno.data + 1*form.rbtnp.data
         sortcol = int(sortcol)
@@ -52,7 +62,7 @@ def ptt():
 def players():
     def sk(x):
         return -int(x[sortcol])
-    form= GetPSortField()
+    form= GetSortField()
     if form.is_submitted():
         sortcol = 2*form.rbtn1.data + 3*form.rbtn2.data + 4*form.rbtn3.data + 5*form.rbtn4.data + 6*form.rbtn5.data + 7*form.rbtn6.data + 8*form.rbtnt.data + 10*form.rbtnno.data + 11*form.rbtnp.data
         sortcol = int(sortcol)
@@ -75,8 +85,7 @@ def players():
 def admin():
     form = TwoDatesForm()
     if form.is_submitted():
-        logging.info(repr(form.datestart.data) + " " + repr(form.dateend.data))
-        wp.gethomers(wp.pdat,form.datestart.data,form.dateend.data)
+        wp.gethomers(wp.pdat,form.datestart.data,form.datestart.data + datetime.timedelta(days=form.dateend.data))
     return render_template('admin.html',form=form, dmax=wp.dmaxstr)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -95,4 +104,24 @@ def login():
             next_page = url_for('index')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form, dmax=wp.dmaxstr)
+
+@app.route('/homers', methods=['GET','POST'])
+def homers():
+    form = GetSortField()
+    if form.validate_on_submit():
+        enddate = form.datestart.data + datetime.timedelta(days=form.datenum.data)
+        whichbutton = form.rbtndt.data + 2*form.rbtnp.data + 3*form.rbtnd.data
+        if whichbutton==1:
+            toprint = sorted(wp.listhomers(form.datestart.data,enddate),key=lambda x: x[0])
+            sortfield = "d"
+        elif whichbutton==3:
+            toprint = sorted(wp.listhomers(form.datestart.data,enddate),key= lambda x: x[0])
+            sortfield = "d"
+        else:
+            toprint = sorted(wp.listhomers(form.datestart.data,enddate),key=lambda x: wp.psort[x[1]])
+            sortfield = "p"
+        return render_template('homers.html',form=form,toprint=toprint,dmax=wp.dmaxstr, sortfield=sortfield)
+    else:
+        return render_template('homers.html',form=form,dmax=wp.dmaxstr)
+
 

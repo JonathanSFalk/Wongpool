@@ -31,15 +31,15 @@
                     <li><a href="{{ url_for('index') }}">Home</a></li>
                 </ul>
                 <ul class="nav navbar-nav">
-                    <li><a href="">Standings Through Games of <em>{{dmax}}</em></a></li>
+                    <li><a href="{{ url_for('standings')  }}">Complete Standings Through Games of <em>{{dmax}}</em></a></li>
                 </ul>
 
                 <ul class="nav navbar-nav navbar-right">
                     <li><a href="{{ url_for('ptt')  }}">Players->Teams</a></li>
                     <li><a href="{{ url_for('hot')  }}">Who's Hot</a></li>
-                    <li><a href="{{ url_for('current')  }}">Current</a></li>
                     <li><a href="{{ url_for('teams') }}">Teams</a></li>
                     <li><a href="{{ url_for('players') }}">Players</a></li>
+                    <li><a href="{{ url_for('homers') }}">Homers</a></li>
                 </ul>
             </div>
          </div>

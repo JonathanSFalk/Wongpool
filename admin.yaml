@@ -1,12 +1,18 @@
 runtime: python27
 api_version: 1
-threadsafe: False
+threadsafe: True
 
 handlers:
 - url: /static
   static_dir: static
-- url: /
+- url: /admin
   script: admin.admin
+
+#cron:
+#- description: "update homers"
+#  url: /
+#  target: 1
+#  schedule: every 24 hours
 
 service: 1
 

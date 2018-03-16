@@ -17,7 +17,7 @@ def index():
     mstands = [x[1] for x in results if x[0]==1]
     cstands = [x[1] for x in results if x[0]==2]
     tstands = [x[1] for x in results if x[0]==3]
-    return render_template('home.html',mstand=mstands, cstand=cstands, tstand=tstands, dmax=wp.dmax)
+    return render_template('home.html',mstand=mstands, cstand=cstands, tstand=tstands, dmax=wp.dmaxstr)
 
 @app.route('/Standings', methods=['GET','POST'])
 @app.route('/standings', methods=['GET','POST'])
@@ -55,6 +55,7 @@ def hot():
 @app.route('/ptt', methods=['GET','POST'])
 def ptt():
     prows=wp.playerstoteams()
+
     return render_template('ptoteams.html', title="Player->Teams", rows=prows,  dmax=wp.dmaxstr)
 
 @app.route('/Players', methods=['GET','POST'])

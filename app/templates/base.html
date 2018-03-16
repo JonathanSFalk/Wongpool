@@ -24,22 +24,22 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{{ url_for('index') }}">Wongpool</a>
+              {#  <a class="navbar-brand" href="{{ url_for('index') }}">Wongpool</a> #}
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('index') }}"><h4>Home</h4></a></li>
                 </ul>
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('standings')  }}">Complete Standings Through Games of <em>{{dmax}}</em></a></li>
+                    <li><a href="{{ url_for('standings')  }}"><h4>Standings Through Games of <mark><strong><em>{{dmax}}</em></strong></mark></h4></a></li>
                 </ul>
 
                 <ul class="nav navbar-nav navbar-right">
-                    <li><a href="{{ url_for('ptt')  }}">Players->Teams</a></li>
-                    <li><a href="{{ url_for('hot')  }}">Who's Hot</a></li>
-                    <li><a href="{{ url_for('teams') }}">Teams</a></li>
-                    <li><a href="{{ url_for('players') }}">Players</a></li>
-                    <li><a href="{{ url_for('homers') }}">Homers</a></li>
+                    <li><a href="{{ url_for('ptt')  }}"><h4>Players->Teams</h4></a></li>
+                    <li><a href="{{ url_for('hot')  }}"><h4>Who's Hot</h4></a></li>
+                    <li><a href="{{ url_for('teams') }}"><h4>Teams</h4></a></li>
+                    <li><a href="{{ url_for('players') }}"><h4>Players</h4></a></li>
+                    <li><a href="{{ url_for('homers') }}"><h4>Homers</h4></a></li>
                 </ul>
             </div>
          </div>

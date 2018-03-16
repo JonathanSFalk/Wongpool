@@ -22,13 +22,13 @@
             {%- elif row.type=="Name" %}
                     <td colspan="8" class="text-left">{{ row.contents }}</td> </tr>
             {%- elif row.type=="Player" %}
-                        <tr><td>   </td><td class="text-left" > {{ row.contents }}</td>
+                   <div id="x">     <tr><td>   </td><td class="text-left" > {{ row.contents }}</td>
             {%- elif row.type=="Month" %}
-                        <td class="text-right"> {{ row.contents }}</td>
+                        <td class="text-right"> {{ row.contents }}</td></div>
             {%- else %}
         <td class="text-right"> {{ row.contents }}</td></tr>
             {% endif %}
         {%- endfor %}
     </table>
 </form>
-{% endblock %}}
+{% endblock %}

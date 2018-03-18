@@ -81,14 +81,6 @@ def players():
     pmat.sort(key=sk)
     return render_template('players.html', title='Player Results', rows=pmat, form=form, dmax = wp.dmaxstr)
 
-@app.route('/admin', methods=['GET','POST'])
-@login_required
-def admin():
-    form = TwoDatesForm()
-    if form.is_submitted():
-        wp.gethomers(wp.pdat,form.datestart.data,form.datestart.data + datetime.timedelta(days=form.dateend.data))
-    return render_template('admin.html',form=form, dmax=wp.dmaxstr)
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:

@@ -4,7 +4,8 @@
 It checks if the data is cached first, and if not,
 gets the data from mlb.com.
 """
-
+from google.appengine.api import urlfetch
+urlfetch.set_default_fetch_deadline(45)
 import os
 
 try:

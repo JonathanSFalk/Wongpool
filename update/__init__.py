@@ -6,23 +6,26 @@ import mlbquery
 from datetime import date, timedelta
 from wp import Homer, create_file, read_file, init
 
-def updatehomers_and_phm(newhomers,hdat, phmdat, pnames):
+def updatehomers_and_phm(hfname, newhomers,hdat, phmdat, pnames):
     tohfile=[]
     for h in newhomers:
         # Make sure this isn't a duplicate home run row
         if len([x for x in hdat if x.pnum==h.pnum and x.gid==h.gid])==0:
-            tohfile.append(",".join([h.player,str(h.pnum),h.gid,str(h.hr),str(h.month)])+"\n")
+            tohfile.append(",".join([h.player,h.gid,str(h.hr),str(h.month),str(h.pnum)])+"\n")
             entry = phmdat[pnames[h.player]]
             entry[h.month-4] += h.hr
             phmdat[pnames[h.player]]=entry
-    homers = read_file("homers2018")
-    homers.extend(tohfile)
-    create_file("homers2018", homers)
+    homers=read_file(hfname)
+    dout=[]
+    for din in homers:
+        dout.append(din + "\n")
+    dout.extend(tohfile)
+    create_file("homers", dout)
     tophmfile=[]
     for k,v in phmdat.items():
         vstr = [str(x) for x in v]
         tophmfile.append(str(k) + "," + ",".join(vstr) + "\n")
-        create_file("phmdat",tophmfile)
+    create_file("phmdat",tophmfile)
 
 def gethomers(df,dt,pnames):
 #takes a starting state and an end date and returns a list of Homer instances
@@ -65,9 +68,12 @@ class UpdateJob(webapp2.RequestHandler):
         if 'X-AppEngine-Cron' not in self.request.headers:
             self.error(403)
         today = date.today()
+        pfname = "players2018.csv"
+        hfname = "homerbase"
+        tfname = "entries"
+        phfname = "phmdat"
 
-        # Get the data
-        pdat,hdat,tdat,phmdat,dmax,dmaxstr,pnames,pnums,psort,rpsort = init()
+        pdat,hdat,tdat,phmdat,dmax,dmaxstr,pnames,pnums,psort,rpsort = init(pfname,hfname,tfname,phfname)
 
         logging.info("Got to here")
 
@@ -84,24 +90,28 @@ class UpdateJob(webapp2.RequestHandler):
 
         logging.info("Passed Newhomers")
 
-        updatehomers_and_phm(newhomers, hdat, phmdat, pnames)
+        updatehomers_and_phm(hfname, newhomers, hdat, phmdat, pnames)
 
         nhl = []
         for nh in newhomers:
-            nhl.append(nh.name)
-        nhl = ",".join(nhl)
+            if nh.hr==1:
+                num=""
+            else:
+                num="(" + str(nh.hr) + ")"
+            nhl.append(nh.player + num)
+        nhl = " ,".join(nhl)
 
         logging.info("Done")
 
         mail.send_mail(sender='jonathansfalk@gmail.com',
                    to="jonathan.falk@marginalutilityllc.com",
-                   subject="Update ofWongpool",
-                   body= "Program ran on" + date.today().strftime("%b-%d") + ". Homers hit by: " + nhl)
+                   subject="Update of Wongpool",
+                   body= "Program ran on " + date.today().strftime("%b-%d") + ". Homers hit by: " + nhl)
 
         self.response.write("Done")
 
 
-admin = webapp2.WSGIApplication([(r'/', UpdateJob),], debug=True)
+admin = webapp2.WSGIApplication([(r'/admin', UpdateJob),], debug=True)
 
 
 

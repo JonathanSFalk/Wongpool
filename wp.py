@@ -1,4 +1,3 @@
-import cfg
 import logging
 from datetime import date, timedelta
 
@@ -11,11 +10,10 @@ from google.appengine.api import app_identity
 class Homer:
     def __init__(self,data):
         self.player = data[0]
-        self.pnum = int(data[4])
         self.gid = data[1]
         self.hr = int(data[2])
         self.month = int(data[3])
-
+        self.pnum = int(data[4])
 
 class Team:
     def __init__(self,data):
@@ -69,29 +67,23 @@ def create_file(filename,content):
 
 
 def read_file(filename):
-    fn = "/" + bucket_name() + "/" + filename
-    #    logging.debug("Reading" + fn)
-    with cloudstorage.open(fn) as cloudstorage_file:
-        lines = []
-        for line in cloudstorage_file:
-            lines.append(line.rstrip("\n"))
-        return lines
-
-
-def read_file_local(filename):
-    fn = filename
-    with open(fn,"r") as cloudstorage_file:
-        lines = []
-        for line in cloudstorage_file:
-            lines.append(line.rstrip("\n"))
-        return lines
+    if os.getenv('SERVER_SOFTWARE','').startswith('Google App Engine/'):
+        fn = "/" + bucket_name() + "/" + filename
+        with cloudstorage.open(fn) as cloudstorage_file:
+            lines = []
+            for line in cloudstorage_file:
+                lines.append(line.rstrip("\n"))
+    else:
+        fn = "data/" + filename
+        with open(fn,"r") as cloudstorage_file:
+            lines = []
+            for line in cloudstorage_file:
+                lines.append(line.rstrip("\n"))
+    return lines
 
 
 def makenames(cls,filename):
-    if cfg.local_dev:
-        din = read_file_local(filename)
-    else:
-        din = read_file(filename)
+    din = read_file(filename)
     dout = []
     for item in din:
         dout.append(cls(item.split(",")))
@@ -110,13 +102,13 @@ def listhomers(df,dt):
 def hothomers():
     startdate = dmax - timedelta(days = 9)
     datealpha = '2017_' + '{:02d}'.format(startdate.month) + "_" + '{:02d}'.format(startdate.day)
-    logging.info(datealpha)
+    #    logging.info(datealpha)
     hot = []
-    logging.info(hdat[0].gid)
+    #    logging.info(hdat[0].gid)
     for x in hdat:
         if x.gid > datealpha:
             hot.append(x)
-    logging.info("Howmmany?" + str(len(hot)))
+    #     logging.info("Howmmany?" + str(len(hot)))
     pt = {}
     for p in pdat:
         pt[p.name] = sum([x.hr for x in hot if x.pnum == p.wongid])
@@ -143,33 +135,42 @@ def playerstoteams():
 def getresults():
     results = []
     months = ("April: ","May: ","June: ","July: ","Aug: ","Sept: ")
+    # Create monthly winners: results code 1
     for i in range(4,min(dmax.month,10)):
         standings = monthstandings(i)
         best = standings[0][2]
         winners = [x[1] + " (" + str(x[2]) + ")" for x in standings if x[2] == best]
         results.append([1,months[i - 4] + ", ".join(winners)])
+    # create Current month standings: results code 2
     standings = monthstandings(min(dmax.month,9))
     for i in range(1,6):
         results.append([2,standings[i-1][1] + ":  " + str(standings[i-1][2])])
     fifth = standings[4][2]
     n = 5
-    ties = []
-    while standings[n][2] == fifth:
-        ties = ties.append(standings[n][1])
+    ties = [standings[4][1]]
+    while (standings[n][2] == fifth) and (n<len(standings)-1):
+#        logging.info(repr(standings[n]))
+        ties.append(standings[n][1])
         n = n + 1
-    if len(ties) > 0:
-        results[len(results) - 1][2] = ",".join(ties.append(standings[4][1]))
+    if len(ties) > 1 and len(ties)<4:
+        results[len(results) - 1][1] = ",".join(ties)
+    elif len(ties)>1:
+        results[len(results) - 1][1] = str(len(ties)) + " entries tied at " + str(fifth)
+    # Create Total standings: results code 3
     standings = monthstandings("Total")
     for i in range(1,6):
         results.append([3,standings[i-1][1] + ":  " + str(standings[i-1][2])])
     fifth = standings[4][2]
     n = 5
-    ties = []
-    while standings[n][2] == fifth:
-        ties = ties.append(standings[n][1])
-        n = n + 1
-    if len(ties) > 0:
-        results[len(results) - 1][2] = ",".join(ties.append(standings[4][1]))
+    ties = [standings[4][1]]
+    while (standings[n][2] == fifth) and (n<len(standings)-1):
+#        logging.debug(repr(standings[n]))
+        ties.append(standings[n][1])
+        n += 1
+    if len(ties) > 1 and len(ties)<4:
+        results[len(results) - 1][1] = ",".join(ties)
+    elif len(ties)>1:
+        results[len(results) - 1][1] = str(len(ties)) + " entries tied at " + str(fifth)
     return results
 
 def entrytable(sortcol):
@@ -238,7 +239,7 @@ def total(team,month):
     mlist = []
     for j in plist:
         if month <> "Total":
-#            logging.info(str(month-4))
+#            logging.info("Team:"+str(q[0].wongid) + "Player:" + str(j) + "M:" + str(month-4))
             mlist.append(phmdat[j][month - 4])
         else:
             mlist.append(sum(phmdat[j]))
@@ -252,12 +253,12 @@ def monthstandings(month):
         mstandings.append([t.wongid,t.name,total(t.wongid,month)])
     return sorted(mstandings,key=lambda x: (-x[2] * 10000 + teamsort.index(x[1])))
 
-def init():
+def init(pfname,hfname,tfname,phfname):
     # Read in all the data
-    pdat = makenames(Player,"players2018.csv")
-    hdat = makenames(Homer,"homers2017")
-    tdat = makenames(Team,"entries")
-    phmitems = makenames(PHM,"phmdat")
+    pdat = makenames(Player,pfname)
+    hdat = makenames(Homer,hfname)
+    tdat = makenames(Team,tfname)
+    phmitems = makenames(PHM,phfname)
     homersph = 0
     for ph in phmitems:
         homersph += sum(ph.value)
@@ -270,7 +271,7 @@ def init():
     # now make 3 dictionaries
 
     phmdat= {}
-    if homersph < homersh:
+    if homersph != homersh:
         for p in pdat:
             phmvec = [0,0,0,0,0,0]
             for m in range(0,6):
@@ -281,11 +282,11 @@ def init():
         for k,v in phmdat.items():
             vstr = [str(x) for x in v]
             tophmfile.append(str(k) + "," + ",".join(vstr) + "\n")
-            create_file("phmdat",tophmfile)
+        if os.getenv('SERVER_SOFTWARE','').startswith('Google App Engine/'):
+            create_file(phfname,tophmfile)
     else:
         for p in phmitems:
             phmdat[p.player] = p.value
-
     pnames = {}
     for p in pdat:
         pnames[p.name] = p.wongid
@@ -303,5 +304,8 @@ def init():
 
     return [pdat,hdat,tdat,phmdat,dmax,dmaxstr,pnames,pnums,psort,rpsort]
 
-
-pdat,hdat,tdat,phmdat,dmax,dmaxstr,pnames,pnums,psort,rpsort = init()
+pfname="players2018.csv"
+hfname="homers"
+tfname="entries"
+phfname="phmdat"
+pdat,hdat,tdat,phmdat,dmax,dmaxstr,pnames,pnums,psort,rpsort = init(pfname,hfname,tfname,phfname)

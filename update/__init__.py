@@ -1,31 +1,45 @@
 import webapp2
-from google.appengine.api import mail
+from google.appengine.ext import ndb
 import logging
 import mlbquery
+import os
+from google.appengine.api import app_identity, mail
+import cloudstorage
 
-from datetime import date, timedelta
-from wp import Homer, create_file, read_file, init
+from datetime import date
 
-def updatehomers_and_phm(hfname, newhomers,hdat, phmdat, pnames):
-    tohfile=[]
-    for h in newhomers:
-        # Make sure this isn't a duplicate home run row
-        if len([x for x in hdat if x.pnum==h.pnum and x.gid==h.gid])==0:
-            tohfile.append(",".join([h.player,h.gid,str(h.hr),str(h.month),str(h.pnum)])+"\n")
-            entry = phmdat[pnames[h.player]]
-            entry[h.month-4] += h.hr
-            phmdat[pnames[h.player]]=entry
-    homers=read_file(hfname)
-    dout=[]
-    for din in homers:
-        dout.append(din + "\n")
-    dout.extend(tohfile)
-    create_file("homers", dout)
-    tophmfile=[]
-    for k,v in phmdat.items():
-        vstr = [str(x) for x in v]
-        tophmfile.append(str(k) + "," + ",".join(vstr) + "\n")
-    create_file("phmdat",tophmfile)
+
+class HomerNDB(ndb.Model):
+    player=ndb.StringProperty()
+    gid=ndb.StringProperty()
+    hr=ndb.IntegerProperty()
+    month=ndb.IntegerProperty()
+    pnum=ndb.IntegerProperty()
+    date=ndb.StringProperty()
+
+def makehomer(newhomer):
+    bulkput = []
+    newones = []
+    for item in newhomer:
+        dt = item[1][0:10]
+        player=item[0]
+        gid=item[1]
+        hr=int(item[2])
+        month=int(item[3])
+        pnum=int(item[4])
+        uniqueid = player+gid
+        findit = HomerNDB.get_by_id(uniqueid)
+        if findit is None:
+            newHomer = HomerNDB(player=player,gid=gid,date=dt,hr=hr,month=month,pnum=pnum,id=uniqueid)
+            bulkput.append(newHomer)
+            newones.append([player,gid,hr,month,pnum])
+    keylist = ndb.put_multi_async(bulkput)
+    return newones
+
+def bucket_name():
+    os.environ.get('BUCKET_NAME',app_identity.get_default_gcs_bucket_name())
+    return app_identity.get_default_gcs_bucket_name()
+
 
 def gethomers(df,dt,pnames):
 #takes a starting state and an end date and returns a list of Homer instances
@@ -41,12 +55,11 @@ def gethomers(df,dt,pnames):
                 pass
             else:
                 dstring = str(m).zfill(2) + "/" + str(j).zfill(2)
-                logging.info('Sending ' +  dstring)
+#                logging.info('Sending ' +  dstring)
                 dayhomers=addaday(dstring,pnames)
                 for d in dayhomers:
                     newhomers.append(d)
     return newhomers
-
 
 def addaday(day,pnames):
     logging.info('Adding: {0}'.format(day))
@@ -59,49 +72,81 @@ def addaday(day,pnames):
     entryadd = []
     if len(toadd) > 0:
         for x in toadd:
-            entryadd.append(Homer([x[0],x[1],x[2],m,pnames[x[0]]]))
+            entryadd.append([str(x[0]),str(x[1]),str(x[2]),str(m),pnames[x[0]]])
     return entryadd
 
+def read_file(filename):
+    if os.getenv('SERVER_SOFTWARE','').startswith('Google App Engine/'):
+        fn = "/" + bucket_name() + "/" + filename
+        with cloudstorage.open(fn) as cloudstorage_file:
+            lines = []
+            for line in cloudstorage_file:
+                lines.append(line.rstrip("\n\r"))
+    else:
+        fn = "data/" + filename
+        with open(fn,"r") as cloudstorage_file:
+            lines = []
+            for line in cloudstorage_file:
+                lines.append(line.rstrip("\n\r"))
+    return lines
+
+def create_file(filename,content):
+    """Create a file."""
+    # The retry_params specified in the open call will override the default
+    # retry params for this particular file handle.
+    write_retry_params = cloudstorage.RetryParams(backoff_factor=1.1)
+    fn = "/" + bucket_name() + "/" + filename
+    with cloudstorage.open(fn,'w',content_type='text/plain',retry_params=write_retry_params) as cloudstorage_file:
+        for ln in content:
+            cloudstorage_file.write(ln)
+        cloudstorage_file.close()
 
 class UpdateJob(webapp2.RequestHandler):
     def get(self):
-        if 'X-AppEngine-Cron' not in self.request.headers:
-            self.error(403)
         today = date.today()
-        pfname = "players2018.csv"
-        hfname = "homerbase"
-        tfname = "entries"
-        phfname = "phmdat"
+        allhomers = HomerNDB.query().fetch()
+        # Generic adjustments here
+        # for example
+        #
+        #        for q in qry:
+        #            z=q.key.delete
 
-        pdat,hdat,tdat,phmdat,dmax,dmaxstr,pnames,pnums,psort,rpsort = init(pfname,hfname,tfname,phfname)
-
-        logging.info("Got to here")
-
-        dmax = max([h.gid for h in hdat])
-
-        maxdate = date(int(dmax[0:4]), int(dmax[5:7]), int(dmax[8:10]))
-
-        year = maxdate.year
-
-        if year == 2018:
-            newhomers = gethomers(maxdate, today, pnames)
-        else:
-            newhomers = gethomers(maxdate, maxdate + timedelta(days=2),pnames)
-
-        logging.info("Passed Newhomers")
-
-        updatehomers_and_phm(hfname, newhomers, hdat, phmdat, pnames)
+        hlist=[]
+#        for h in homerfile:
+#            hlist.append(h.split(","))
+        for h in allhomers:
+            hlist.append([h.player,h.gid,h.hr,h.month,h.pnum])
+        gidmax = max([x[1] for x in hlist])
+        self.response.write("Maxdate: " + gidmax + "<br>")
+#        logging.debug(gidmax)
+        gidmax = date(2018,int(gidmax[5:7]),int(gidmax[8:10]))
+        playerfile=read_file("players2018.csv")
+        pnames={}
+        for p in playerfile:
+            ps = p.split(",")
+            pnames[ps[1]]=ps[0]
+        newhomers = gethomers(gidmax,today,pnames)
+        self.response.write("Homers In<br>")
+        for h in newhomers:
+            self.response.write(repr(h)+"<br>")
+        newhomers = makehomer(newhomers)
+        self.response.write("Homers Out<br>")
+        for h in newhomers:
+            self.response.write(repr(h)+"<br>")
+        hlist.extend(newhomers)
+        tosave=[]
+        for h in hlist:
+            tosave.append(",".join(map(str,h)) +"\n")
+        create_file("homers2018",tosave)
 
         nhl = []
         for nh in newhomers:
-            if nh.hr==1:
+            if str(nh[2])=='1':
                 num=""
             else:
-                num="(" + str(nh.hr) + ")"
-            nhl.append(nh.player + num)
+                num="(" + str(nh[2]) + ")"
+            nhl.append(nh[0] + num)
         nhl = " ,".join(nhl)
-
-        logging.info("Done")
 
         mail.send_mail(sender='jonathansfalk@gmail.com',
                    to="jonathan.falk@marginalutilityllc.com",
@@ -110,9 +155,4 @@ class UpdateJob(webapp2.RequestHandler):
 
         self.response.write("Done")
 
-
-admin = webapp2.WSGIApplication([(r'/admin', UpdateJob),], debug=True)
-
-
-
-
+admin = ndb.toplevel(webapp2.WSGIApplication([(r'/admin', UpdateJob),],debug=True))

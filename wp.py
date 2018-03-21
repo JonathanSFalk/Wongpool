@@ -1,11 +1,11 @@
-import logging
+
 from datetime import date, timedelta
 
 import os
 import cloudstorage
-
+import logging
 from google.appengine.api import app_identity
-
+from update import HomerNDB
 
 class Homer:
     def __init__(self,data):
@@ -23,7 +23,6 @@ class Team:
         for j in range(0,8):
             self.players[j] = int(data[j + 2])
         self.tholder = 0
-
 
 class Player:
     def __init__(self,data):
@@ -54,18 +53,6 @@ def bucket_name():
     return app_identity.get_default_gcs_bucket_name()
 
 
-def create_file(filename,content):
-    """Create a file."""
-    # The retry_params specified in the open call will override the default
-    # retry params for this particular file handle.
-    write_retry_params = cloudstorage.RetryParams(backoff_factor=1.1)
-    fn = "/" + bucket_name() + "/" + filename
-    with cloudstorage.open(fn,'w',content_type='text/plain',retry_params=write_retry_params) as cloudstorage_file:
-        for ln in content:
-            cloudstorage_file.write(ln)
-        cloudstorage_file.close()
-
-
 def read_file(filename):
     if os.getenv('SERVER_SOFTWARE','').startswith('Google App Engine/'):
         fn = "/" + bucket_name() + "/" + filename
@@ -90,8 +77,8 @@ def makenames(cls,filename):
     return dout
 
 def listhomers(df,dt):
-    datealphas = '2017_' + '{:02d}'.format(df.month) + "_" + '{:02d}'.format(df.day)
-    datealphat = '2017_' + '{:02d}'.format(dt.month) + "_" + '{:02d}'.format(dt.day)
+    datealphas = '2018_' + '{:02d}'.format(df.month) + "_" + '{:02d}'.format(df.day)
+    datealphat = '2018_' + '{:02d}'.format(dt.month) + "_" + '{:02d}'.format(dt.day)
     retmat=[]
     for x in hdat:
         if x.gid >= datealphas and x.gid <= datealphat:
@@ -101,7 +88,7 @@ def listhomers(df,dt):
 
 def hothomers():
     startdate = dmax - timedelta(days = 9)
-    datealpha = '2017_' + '{:02d}'.format(startdate.month) + "_" + '{:02d}'.format(startdate.day)
+    datealpha = '2018_' + '{:02d}'.format(startdate.month) + "_" + '{:02d}'.format(startdate.day)
     #    logging.info(datealpha)
     hot = []
     #    logging.info(hdat[0].gid)
@@ -142,7 +129,7 @@ def getresults():
         winners = [x[1] + " (" + str(x[2]) + ")" for x in standings if x[2] == best]
         results.append([1,months[i - 4] + ", ".join(winners)])
     # create Current month standings: results code 2
-    standings = monthstandings(min(dmax.month,9))
+    standings = monthstandings(min(max(dmax.month,4),9))
     for i in range(1,6):
         results.append([2,standings[i-1][1] + ":  " + str(standings[i-1][2])])
     fifth = standings[4][2]
@@ -253,16 +240,19 @@ def monthstandings(month):
         mstandings.append([t.wongid,t.name,total(t.wongid,month)])
     return sorted(mstandings,key=lambda x: (-x[2] * 10000 + teamsort.index(x[1])))
 
-def init(pfname,hfname,tfname,phfname):
+def init(pfname,tfname):
     # Read in all the data
     pdat = makenames(Player,pfname)
-    hdat = makenames(Homer,hfname)
+    hget = HomerNDB.query().fetch()
+    hdat=[]
+    for h in hget:
+        hdat.append(Homer([h.player,h.gid,h.hr,h.month,h.pnum]))
     tdat = makenames(Team,tfname)
-    phmitems = makenames(PHM,phfname)
-    homersph = 0
-    for ph in phmitems:
-        homersph += sum(ph.value)
-    homersh = sum([x.hr for x in hdat])
+#    phmitems = makenames(PHM,phfname)
+#    homersph = 0
+#   for ph in phmitems:
+#        homersph += sum(ph.value)
+#    homersh = sum([x.hr for x in hdat])
 
     dmax = max([h.gid for h in hdat])
 
@@ -271,22 +261,22 @@ def init(pfname,hfname,tfname,phfname):
     # now make 3 dictionaries
 
     phmdat= {}
-    if homersph != homersh:
-        for p in pdat:
-            phmvec = [0,0,0,0,0,0]
-            for m in range(0,6):
-                phmvec[m] = sum([x.hr for x in hdat if x.pnum == p.wongid and x.month == m + 4])
-            phmdat[p.wongid] = phmvec
-        #        print("Adding: " + str(p.wongid) + ":" + str(phmvec[0]) )
-        tophmfile = []
-        for k,v in phmdat.items():
-            vstr = [str(x) for x in v]
-            tophmfile.append(str(k) + "," + ",".join(vstr) + "\n")
-        if os.getenv('SERVER_SOFTWARE','').startswith('Google App Engine/'):
-            create_file(phfname,tophmfile)
-    else:
-        for p in phmitems:
-            phmdat[p.player] = p.value
+#    if homersph != homersh:
+    for p in pdat:
+        phmvec = [0,0,0,0,0,0]
+        for m in range(0,6):
+            phmvec[m] = sum([x.hr for x in hdat if x.pnum == p.wongid and x.month == m + 4])
+        phmdat[p.wongid] = phmvec
+#    #        print("Adding: " + str(p.wongid) + ":" + str(phmvec[0]) )
+#       tophmfile = []
+#       for k,v in phmdat.items():
+#           vstr = [str(x) for x in v]
+#           tophmfile.append(str(k) + "," + ",".join(vstr) + "\n")
+#       if os.getenv('SERVER_SOFTWARE','').startswith('Google App Engine/'):
+#           create_file(phfname,tophmfile)
+#   else:
+#       for p in phmitems:
+#           phmdat[p.player] = p.value
     pnames = {}
     for p in pdat:
         pnames[p.name] = p.wongid
@@ -305,7 +295,6 @@ def init(pfname,hfname,tfname,phfname):
     return [pdat,hdat,tdat,phmdat,dmax,dmaxstr,pnames,pnums,psort,rpsort]
 
 pfname="players2018.csv"
-hfname="homers"
 tfname="entries"
-phfname="phmdat"
-pdat,hdat,tdat,phmdat,dmax,dmaxstr,pnames,pnums,psort,rpsort = init(pfname,hfname,tfname,phfname)
+# phfname="phmdat"
+pdat,hdat,tdat,phmdat,dmax,dmaxstr,pnames,pnums,psort,rpsort = init(pfname,tfname)

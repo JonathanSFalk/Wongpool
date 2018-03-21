@@ -6,7 +6,7 @@ def hrthisday(plist,daystring):
     from collections import defaultdict
     import mlbgame
     hml=[]
-    month = mlbgame.games(2017, months=int(daystring[0:2]),days=int(daystring[3:5]))
+    month = mlbgame.games(2018, months=int(daystring[0:2]),days=int(daystring[3:5]))
     mc = int(daystring[0:2])
     if mc==3:
         mc=4
@@ -16,7 +16,7 @@ def hrthisday(plist,daystring):
     for game in games:
         date=game.game_id[0:10]
         try:
-            if mlbgame.overview(game.game_id).game_type=="R":
+            if mlbgame.overview(game.game_id).game_type=="R" or cfg['SPRING']:
                 stats = mlbgame.player_stats(game.game_id)
                 for player in stats.home_batting:
                     if ((player.name_display_first_last in plist) or plist==[]) and player.hr>0:

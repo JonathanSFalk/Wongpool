@@ -10,14 +10,9 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
 
-class TwoDatesForm(FlaskForm):
-    datestart=DateField('Starting Date', validators=[DataRequired])
-    datenum=IntegerField('Days', default=0,validators=[DataRequired,NumberRange(min=0)])
-    submit = SubmitField('Go')
-
 def validate_date(form, field):
-    if field.data.year != 2017:
-        raise ValidationError('Year Must be 2017')
+    if field.data.year != 2018:
+        raise ValidationError('Year Must be 2018')
 
 class GetSortField(FlaskForm):
     rbtnp = SubmitField("Player")
@@ -31,7 +26,7 @@ class GetSortField(FlaskForm):
     rbtn6 =  SubmitField("September")
     rbtnt =  SubmitField("Total")
     rbtnd = SubmitField("Go")
-    datestart= DateField('Starting Date',default=datetime.date(2017,04,02),validators=[validate_date])
+    datestart= DateField('Starting Date',default=datetime.date(2018,04,02),validators=[validate_date])
     datenum= IntegerField('Days',default=1,validators=[NumberRange(min=1)])
     rbtndt = SubmitField("Date")
 

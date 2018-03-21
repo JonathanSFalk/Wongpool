@@ -1,13 +1,14 @@
 from flask import render_template, flash, redirect, url_for, request
-from werkzeug.urls import url_parse
 from app import app
-from app.forms import LoginForm, TwoDatesForm,  GetSortField
-from flask_login import current_user, login_user, login_required
+from app.forms import GetSortField
 import datetime
-import wp
-import cfg
 import logging
-import models
+import wp
+
+
+#from werkzeug.urls import url_parse
+#from flask_login import current_user, login_user, login_required
+#import cfg
 
 
 @app.route('/')
@@ -76,27 +77,9 @@ def players():
     ps = wp.psort
     for p in data:
         n=p.wongid
-#        pmat.append([n,names[n],ph[n][0],ph[n][1],ph[n][2],ph[n][3],ph[n][4],ph[n][5],sum(ph[n])])
         pmat.append([n,names[n],ph[n][0],ph[n][1],ph[n][2],ph[n][3],ph[n][4],ph[n][5],sum(ph[n]),p.lookup,-n,-ps[names[n]]])
     pmat.sort(key=sk)
     return render_template('players.html', title='Player Results', rows=pmat, form=form, dmax = wp.dmaxstr)
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = models.poolboss
-        if user is None or not user.check_password(form.password.data):
-            flash('Invalid username or password')
-            return redirect(url_for('login'))
-        login_user(user, remember=form.remember_me.data)
-        next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('index')
-        return redirect(next_page)
-    return render_template('login.html', title='Sign In', form=form, dmax=wp.dmaxstr)
 
 @app.route('/homers', methods=['GET','POST'])
 def homers():
@@ -118,3 +101,19 @@ def homers():
         return render_template('homers.html',form=form,dmax=wp.dmaxstr)
 
 
+#@app.route('/login', methods=['GET', 'POST'])
+#def login():
+#    if current_user.is_authenticated:
+#        return redirect(url_for('index'))
+#    form = LoginForm()
+#    if form.validate_on_submit():
+#        user = models.poolboss
+#        if user is None or not user.check_password(form.password.data):
+#            flash('Invalid username or password')
+#            return redirect(url_for('login'))
+#        login_user(user, remember=form.remember_me.data)
+#        next_page = request.args.get('next')
+#        if not next_page or url_parse(next_page).netloc != '':
+#            next_page = url_for('index')
+#        return redirect(next_page)
+#    return render_template('login.html', title='Sign In', form=form, dmax=wp.dmaxstr)

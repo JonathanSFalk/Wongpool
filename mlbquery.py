@@ -16,7 +16,7 @@ def hrthisday(plist,daystring):
     for game in games:
         date=game.game_id[0:10]
         try:
-            if mlbgame.overview(game.game_id).game_type=="R" or cfg['SPRING']:
+            if mlbgame.overview(game.game_id).game_type=="R" or cfg.spring:
                 stats = mlbgame.player_stats(game.game_id)
                 for player in stats.home_batting:
                     if ((player.name_display_first_last in plist) or plist==[]) and player.hr>0:

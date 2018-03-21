@@ -155,4 +155,4 @@ class UpdateJob(webapp2.RequestHandler):
 
         self.response.write("Done")
 
-admin = ndb.toplevel(webapp2.WSGIApplication([(r'/admin', UpdateJob),],debug=True))
+admin = ndb.toplevel(webapp2.WSGIApplication([(r'/', UpdateJob),],debug=True))

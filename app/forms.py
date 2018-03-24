@@ -10,7 +10,7 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
 
-def validate_date(form, field):
+def validate_date(form,field):
     if field.data.year != 2018:
         raise ValidationError('Year Must be 2018')
 

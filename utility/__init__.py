@@ -1,24 +1,38 @@
 import logging
-
 import webapp2
+import cloudstorage
+import os
+from google.appengine.api import app_identity
+from wp import HomerNDB
 
+def bucket_name():
+    os.environ.get('BUCKET_NAME',app_identity.get_default_gcs_bucket_name())
+    return app_identity.get_default_gcs_bucket_name()
+
+def create_file(filename,content):
+    """Create a file."""
+    # The retry_params specified in the open call will override the default
+    # retry params for this particular file handle.
+    write_retry_params = cloudstorage.RetryParams(backoff_factor=1.1)
+    fn = "/" + bucket_name() + "/" + filename
+    with cloudstorage.open(fn,'w',content_type='text/plain',retry_params=write_retry_params) as cloudstorage_file:
+        for ln in content:
+            cloudstorage_file.write(ln)
+        cloudstorage_file.close()
+
+def makefile():
+    hdat = HomerNDB.query().fetch()
+    printmat=[]
+    for h in hdat:
+        printmat.append(",".join(map(str,[h.player, h.gid, h.hr, h.month, h.pnum]))+"\n")
+    create_file("homers2018",printmat)
+    return printmat
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
-        logging.debug('This is a debug message')
-        logging.info('This is an info message')
-        logging.warning('This is a warning message')
-        logging.error('This is an error message')
-        logging.critical('This is a critical message')
-
-        try:
-            raise ValueError('This is a sample value error.')
-        except ValueError:
-            logging.exception('A example exception log.')
-
-        self.response.out.write('Logging example.')
+        z=makefile()
+        self.response.write(repr(z[0]))
+        self.response.write("Done")
 
 
-utility = webapp2.WSGIApplication([
-    ('/', MainPage)
-], debug=True)
+utility = webapp2.WSGIApplication([('/', MainPage)], debug=True)

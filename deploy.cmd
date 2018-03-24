@@ -1,2 +1,3 @@
-gcloud app deploy app.yaml admin.yaml cron.yaml -v v1 --promote --stop-previous-version --quiet
+gcloud app deploy app.yaml update.yaml utility.yaml cron.yaml -v v2
+
 

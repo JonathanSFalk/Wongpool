@@ -5,17 +5,10 @@ import mlbquery
 import os
 from google.appengine.api import app_identity, mail
 import cloudstorage
-
+from wp import HomerNDB
 from datetime import date
+from utility import bucket_name
 
-
-class HomerNDB(ndb.Model):
-    player=ndb.StringProperty()
-    gid=ndb.StringProperty()
-    hr=ndb.IntegerProperty()
-    month=ndb.IntegerProperty()
-    pnum=ndb.IntegerProperty()
-    date=ndb.StringProperty()
 
 def makehomer(newhomer):
     bulkput = []
@@ -28,17 +21,11 @@ def makehomer(newhomer):
         month=int(item[3])
         pnum=int(item[4])
         uniqueid = player+gid
-        findit = HomerNDB.get_by_id(uniqueid)
-        if findit is None:
-            newHomer = HomerNDB(player=player,gid=gid,date=dt,hr=hr,month=month,pnum=pnum,id=uniqueid)
-            bulkput.append(newHomer)
-            newones.append([player,gid,hr,month,pnum])
-    keylist = ndb.put_multi_async(bulkput)
+        newHomer = HomerNDB(player=player,gid=gid,date=dt,hr=hr,month=month,pnum=pnum,id=uniqueid)
+        bulkput.append(newHomer)
+        newones.append([player,gid,hr,month,pnum])
+    keylist = ndb.put_multi(bulkput)
     return newones
-
-def bucket_name():
-    os.environ.get('BUCKET_NAME',app_identity.get_default_gcs_bucket_name())
-    return app_identity.get_default_gcs_bucket_name()
 
 
 def gethomers(df,dt,pnames):
@@ -75,6 +62,8 @@ def addaday(day,pnames):
             entryadd.append([str(x[0]),str(x[1]),str(x[2]),str(m),pnames[x[0]]])
     return entryadd
 
+
+
 def read_file(filename):
     if os.getenv('SERVER_SOFTWARE','').startswith('Google App Engine/'):
         fn = "/" + bucket_name() + "/" + filename
@@ -90,34 +79,18 @@ def read_file(filename):
                 lines.append(line.rstrip("\n\r"))
     return lines
 
-def create_file(filename,content):
-    """Create a file."""
-    # The retry_params specified in the open call will override the default
-    # retry params for this particular file handle.
-    write_retry_params = cloudstorage.RetryParams(backoff_factor=1.1)
-    fn = "/" + bucket_name() + "/" + filename
-    with cloudstorage.open(fn,'w',content_type='text/plain',retry_params=write_retry_params) as cloudstorage_file:
-        for ln in content:
-            cloudstorage_file.write(ln)
-        cloudstorage_file.close()
-
 class UpdateJob(webapp2.RequestHandler):
     def get(self):
         today = date.today()
         allhomers = HomerNDB.query().fetch()
+        gidmax=max(x.date for x in allhomers)
         # Generic adjustments here
         # for example
         #
         #        for q in qry:
         #            z=q.key.delete
 
-        hlist=[]
-#        for h in homerfile:
-#            hlist.append(h.split(","))
-        for h in allhomers:
-            hlist.append([h.player,h.gid,h.hr,h.month,h.pnum])
-        gidmax = max([x[1] for x in hlist])
-        self.response.write("Maxdate: " + gidmax + "<br>")
+#        self.response.write("Maxdate: " + gidmax + "<br>")
 #        logging.debug(gidmax)
         gidmax = date(2018,int(gidmax[5:7]),int(gidmax[8:10]))
         playerfile=read_file("players2018.csv")
@@ -130,15 +103,6 @@ class UpdateJob(webapp2.RequestHandler):
         for h in newhomers:
             self.response.write(repr(h)+"<br>")
         newhomers = makehomer(newhomers)
-        self.response.write("Homers Out<br>")
-        for h in newhomers:
-            self.response.write(repr(h)+"<br>")
-        hlist.extend(newhomers)
-        tosave=[]
-        for h in hlist:
-            tosave.append(",".join(map(str,h)) +"\n")
-        create_file("homers2018",tosave)
-
         nhl = []
         for nh in newhomers:
             if str(nh[2])=='1':
@@ -146,7 +110,7 @@ class UpdateJob(webapp2.RequestHandler):
             else:
                 num="(" + str(nh[2]) + ")"
             nhl.append(nh[0] + num)
-        nhl = " ,".join(nhl)
+        nhl = ", ".join(nhl)
 
         mail.send_mail(sender='jonathansfalk@gmail.com',
                    to="jonathan.falk@marginalutilityllc.com",
@@ -155,4 +119,4 @@ class UpdateJob(webapp2.RequestHandler):
 
         self.response.write("Done")
 
-admin = ndb.toplevel(webapp2.WSGIApplication([(r'/', UpdateJob),],debug=True))
+update = ndb.toplevel(webapp2.WSGIApplication([(r'/', UpdateJob),],debug=True))

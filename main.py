@@ -1,4 +1,4 @@
 from app import app
 import cfg
-from update import admin
+from update import update
 from utility import utility

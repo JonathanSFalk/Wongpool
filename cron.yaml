@@ -1,6 +1,6 @@
 cron:
 - description: "get homers"
-  url: /admin
+  url: /
   schedule: every day 05:00
-  target: 1
+  target: update
   timezone: America/New_York

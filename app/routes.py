@@ -38,7 +38,7 @@ def standings():
 def teams():
     form = GetSortField()
     if form.is_submitted():
-        sortcol = 2*form.rbtn1.data + 3*form.rbtn2.data + 4*form.rbtn3.data + 5*form.rbtn4.data + 6*form.rbtn5.data + 7*form.rbtn6.data + 8*form.rbtnt.data + 0*form.rbtnno.data + 1*form.rbtnp.data
+        sortcol = 2*form.rbtn1.data + 3*form.rbtn2.data + 4*form.rbtn3.data + 5*form.rbtn4.data + 6*form.rbtn5.data + 7*form.rbtn6.data + 8*form.rbtnt.data + 0*form.rbtnno.data + 1*form.rbtntm.data
         sortcol = int(sortcol)
         logging.info("SORTCOL" + str(sortcol))
     else:

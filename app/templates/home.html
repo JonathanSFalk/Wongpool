@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-<p> I am carrying out testing before the season starts... So if things seems completely wrong, don't worry.
-It will all be fixed by opening day.</p>
+
 <style type="text/css"> .jumbotron-home {d-flex;
     background-image:url('/rsz_maris.jpg');
 background-size:contain; background-repeat:no-repeat; background-color:#ffffff; color: #3e562b;}  .jumbotron h1 {margin-top: 0px; padding-top: 0px;
@@ -13,6 +12,51 @@ text-shadow: 2px 2px #bc9629} .jumbotron h6 {justify-content:flex-end; margin-to
 
 
 <div class="container"> <div class = "jumbotron jumbotron-home"><h1>Danny Wong Home Run Pool</h1>
+    <style>
+.thisbox {
+    background-color: lightgrey;
+    opacity: 0.6;
+    width: 350px;
+    border: 10px solid #807d37;
+    padding: 10px;
+    margin: 10px;
+    text-align: center;
+}
+</style>
+    <div class="thisbox"><h2> Time Until Opening Day</h2>
+    <h2 id="demo"></h2></div>
+
+<script>
+// Set the date we're counting down to
+var countDownDate = new Date("Mar 29, 2018 12:30:00").getTime();
+
+// Update the count down every 1 second
+var x = setInterval(function() {
+
+    // Get todays date and time
+    var now = new Date().getTime();
+
+    // Find the distance between now an the count down date
+    var distance = countDownDate - now;
+
+    // Time calculations for days, hours, minutes and seconds
+    var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    // Output the result in an element with id="demo"
+    document.getElementById("demo").innerHTML = days + "d " + hours + "h "
+    + minutes + "m " + seconds + "s ";
+
+    // If the count down is over, write some text
+    if (distance < 0) {
+        clearInterval(x);
+        document.getElementById("demo").innerHTML = "EXPIRED";
+    }
+}, 1000);
+</script>
+
     <h6 class="text-left">Roger Maris, September 17th 1961</h6></div>
 </div>
 
@@ -23,7 +67,7 @@ text-shadow: 2px 2px #bc9629} .jumbotron h6 {justify-content:flex-end; margin-to
     <div class="col-xs-4"><strong><u>Current Month Leaders</u></strong></div>
     <div class="col-xs-4"><strong><u>Overall Leaders</u></strong></div>
 </div>
-{%- for i in range(0,6) %}
+{%- for i in range(0,20) %}
 <div class="row">
   <div class="col-xs-4">{{mstand[i]}}</div>
   <div class="col-xs-4">{{cstand[i]}}</div>

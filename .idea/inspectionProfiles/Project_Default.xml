@@ -52,6 +52,7 @@
         <list>
           <option value="wp.dmax" />
           <option value="wp.monthstandings" />
+          <option value="google.appengine.ext.ndb.*" />
         </list>
       </option>
     </inspection_tool>

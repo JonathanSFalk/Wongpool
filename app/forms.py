@@ -26,7 +26,7 @@ class GetSortField(FlaskForm):
     rbtn6 =  SubmitField("September")
     rbtnt =  SubmitField("Total")
     rbtnd = SubmitField("Go")
-    datestart= DateField('Starting Date',default=datetime.date(2018,04,02),validators=[validate_date])
+    datestart= DateField('Starting Date',default=datetime.date(2018,03,29),validators=[validate_date])
     datenum= IntegerField('Days',default=1,validators=[NumberRange(min=1)])
     rbtndt = SubmitField("Date")
 

@@ -30,8 +30,8 @@ def makefile():
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
+        # do whatever needs to be done to the homer entities here
         z=makefile()
-        self.response.write(repr(z[0]))
         self.response.write("Done")
 
 

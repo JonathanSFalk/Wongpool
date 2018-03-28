@@ -3,11 +3,12 @@ from google.appengine.ext import ndb
 import logging
 import mlbquery
 import os
-from google.appengine.api import app_identity, mail
+from google.appengine.api import mail
 import cloudstorage
 from wp import HomerNDB
-from datetime import date
+from datetime import date, datetime, timedelta
 from utility import bucket_name
+import cfg
 
 
 def makehomer(newhomer):
@@ -20,11 +21,12 @@ def makehomer(newhomer):
         hr=int(item[2])
         month=int(item[3])
         pnum=int(item[4])
+        timestamp = datetime.utcnow().strftime("%b %d %H:%M UTC")
         uniqueid = player+gid
-        newHomer = HomerNDB(player=player,gid=gid,date=dt,hr=hr,month=month,pnum=pnum,id=uniqueid)
+        newHomer = HomerNDB(player=player,gid=gid,date=dt,hr=hr,month=month,pnum=pnum,timestamp=timestamp,id=uniqueid)
         bulkput.append(newHomer)
         newones.append([player,gid,hr,month,pnum])
-    keylist = ndb.put_multi(bulkput)
+    ndb.put_multi(bulkput)
     return newones
 
 
@@ -82,6 +84,8 @@ def read_file(filename):
 class UpdateJob(webapp2.RequestHandler):
     def get(self):
         today = date.today()
+        now= datetime.now()
+        cfg.Config.LAST_UPDATE=now.strftime("%b/%d %H:%M")
         allhomers = HomerNDB.query().fetch()
         gidmax=max(x.date for x in allhomers)
         # Generic adjustments here
@@ -93,12 +97,13 @@ class UpdateJob(webapp2.RequestHandler):
 #        self.response.write("Maxdate: " + gidmax + "<br>")
 #        logging.debug(gidmax)
         gidmax = date(2018,int(gidmax[5:7]),int(gidmax[8:10]))
+        blankdayalert = gidmax < (today - timedelta(1))
         playerfile=read_file("players2018.csv")
         pnames={}
         for p in playerfile:
             ps = p.split(",")
             pnames[ps[1]]=ps[0]
-        newhomers = gethomers(gidmax,today,pnames)
+        newhomers = gethomers(today-timedelta(1),today,pnames)
         self.response.write("Homers In<br>")
         for h in newhomers:
             self.response.write(repr(h)+"<br>")
@@ -110,12 +115,12 @@ class UpdateJob(webapp2.RequestHandler):
             else:
                 num="(" + str(nh[2]) + ")"
             nhl.append(nh[0] + num)
-        nhl = ", ".join(nhl)
+        nhl = "\n".join(nhl)
 
         mail.send_mail(sender='jonathansfalk@gmail.com',
                    to="jonathan.falk@marginalutilityllc.com",
-                   subject="Update of Wongpool",
-                   body= "Program ran on " + date.today().strftime("%b-%d") + ". Homers hit by: " + nhl)
+                   subject="Update of Wongpool" + blankdayalert*": Blank Day Alert",
+                   body= "Program ran on " + date.today().strftime("%b-%d") + ". Homers hit by: \n" + nhl)
 
         self.response.write("Done")
 

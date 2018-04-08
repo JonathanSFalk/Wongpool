@@ -4,17 +4,18 @@
 <form action="" method="POST">
     <table class="table table-bordered table-responsive table-hover w-100 d-block d-md-table">
         <caption><h2><strong><em>Standings: </em></strong>Click On Any Header to Sort</h2></caption>
-        <tr>
-            <th style="text-align:center">{{form.rbtnno()}}</th>
-            <th style="text-align:center">{{form.rbtnp()}}</th>
-            <th style="text-align:center">{{form.rbtn1()}}</th>
-            <th style="text-align:center">{{form.rbtn2()}}</th>
-            <th style="text-align:center">{{form.rbtn3()}}</th>
-            <th style="text-align:center">{{form.rbtn4()}}</th>
-            <th style="text-align:center">{{form.rbtn5()}}</th>
-            <th style="text-align:center">{{form.rbtn6()}}</th>
-            <th style="text-align:center">{{form.rbtnt()}}</th>
-        </tr>
+                <div button class="btn-group btn-group-justified">
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtnno()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtntm()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtn1()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtn2()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtn3()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtn4()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtn5()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtn6()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtnt()}}</button></th>
+            </div>
+
         {%- for row in rows%}
                 <tr>
                     <td class="text-left">{{ row[0]}} </td>

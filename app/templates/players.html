@@ -4,19 +4,19 @@
 <form action="" method="POST">
     <table class="table table-bordered table-hover table-responsive w-100 d-block d-md-table">
         <caption><h2><em><strong>PLAYERS:</strong> Click on any column to sort</em></h2></caption>
-        <tr>
+
             <div button class="btn-group btn-group-justified">
-            <th style="width:5%"><button type="button" role="group" class="btn-group">{{form.rbtnno()}}</button></th>
-            <th style="width:20%"><button type="button" role="group" class="btn-group">{{form.rbtnp()}}</button></th>
-            <th style="width:15%"><button type="button" role="group" class="btn-group">{{form.rbtn1()}}</button></th>
-            <th style="width:15%"><button type="button" role="group" class="btn-group">{{form.rbtn2()}}</button></th>
-            <th style="width:15%"><button type="button" role="group" class="btn-group">{{form.rbtn3()}}</button></th>
-            <th style="width:15%"><button type="button" role="group" class="btn-group">{{form.rbtn4()}}</button></th>
-            <th style="width:15%"><button type="button" role="group" class="btn-group">{{form.rbtn5()}}</button></th>
-            <th style="width:15%"><button type="button" role="group" class="btn-group">{{form.rbtn6()}}</button></th>
-            <th style="width:15%"><button type="button" role="group" class="btn-group">{{form.rbtnt()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtnno()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtnp()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtn1()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtn2()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtn3()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtn4()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtn5()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtn6()}}</button></th>
+            <th><button type="button" style="width:100%" role="group" class="btn-group">{{form.rbtnt()}}</button></th>
             </div>
-        </tr>
+
         {% for row in rows %}
         <tr>
             <td class="text-left">{{row[0]}}</td>

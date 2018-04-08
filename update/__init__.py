@@ -3,17 +3,26 @@ from google.appengine.ext import ndb
 import logging
 import mlbquery
 import os
-from google.appengine.api import mail
+from google.appengine.api import mail,app_identity
 import cloudstorage
 from wp import HomerNDB
 from datetime import date, datetime, timedelta
-from utility import bucket_name
-import cfg
+import pytz
 
+class LastUpdate(ndb.Model):
+    lu = ndb.StringProperty()
+    _use_cache = False
+    _memcache_timeout=2
+
+def bucket_name():
+    os.environ.get('BUCKET_NAME',app_identity.get_default_gcs_bucket_name())
+    return app_identity.get_default_gcs_bucket_name()
 
 def makehomer(newhomer):
     bulkput = []
     newones = []
+    # ALL ITEMS IN THIS UPDATE GET THE SAME TIMESTAMP
+    timestamp = datetime.utcnow().strftime("%b %d %H:%M UTC")
     for item in newhomer:
         dt = item[1][0:10]
         player=item[0]
@@ -21,9 +30,9 @@ def makehomer(newhomer):
         hr=int(item[2])
         month=int(item[3])
         pnum=int(item[4])
-        timestamp = datetime.utcnow().strftime("%b %d %H:%M UTC")
         uniqueid = player+gid
-        newHomer = HomerNDB(player=player,gid=gid,date=dt,hr=hr,month=month,pnum=pnum,timestamp=timestamp,id=uniqueid)
+        newHomer = HomerNDB(player=player,gid=gid,date=dt,hr=hr,month=month,pnum=pnum,timestamp=timestamp,id=uniqueid,
+                            parent=ndb.Key('Project','Wong'))
         bulkput.append(newHomer)
         newones.append([player,gid,hr,month,pnum])
     ndb.put_multi(bulkput)
@@ -83,27 +92,22 @@ def read_file(filename):
 
 class UpdateJob(webapp2.RequestHandler):
     def get(self):
-        today = date.today()
-        now= datetime.now()
-        cfg.Config.LAST_UPDATE=now.strftime("%b/%d %H:%M")
-        allhomers = HomerNDB.query().fetch()
-        gidmax=max(x.date for x in allhomers)
+        rightnow=datetime.now(pytz.timezone('America/New_York'))
+        today = date(2018,rightnow.month,rightnow.day)
         # Generic adjustments here
         # for example
         #
         #        for q in qry:
         #            z=q.key.delete
-
-#        self.response.write("Maxdate: " + gidmax + "<br>")
-#        logging.debug(gidmax)
-        gidmax = date(2018,int(gidmax[5:7]),int(gidmax[8:10]))
-        blankdayalert = gidmax < (today - timedelta(1))
         playerfile=read_file("players2018.csv")
         pnames={}
         for p in playerfile:
             ps = p.split(",")
             pnames[ps[1]]=ps[0]
-        newhomers = gethomers(today-timedelta(1),today,pnames)
+        if rightnow.hour<12:
+            newhomers = gethomers(today - timedelta(1),today,pnames)
+        else:
+            newhomers = gethomers(today,today,pnames)
         self.response.write("Homers In<br>")
         for h in newhomers:
             self.response.write(repr(h)+"<br>")
@@ -114,14 +118,17 @@ class UpdateJob(webapp2.RequestHandler):
                 num=""
             else:
                 num="(" + str(nh[2]) + ")"
-            nhl.append(nh[0] + num)
+            nhl.append(str(nh[0]) + num)
         nhl = "\n".join(nhl)
 
         mail.send_mail(sender='jonathansfalk@gmail.com',
-                   to="jonathan.falk@marginalutilityllc.com",
-                   subject="Update of Wongpool" + blankdayalert*": Blank Day Alert",
+                   to="webmaster@wongpool.com",
+                   subject="Update of Wongpool",
                    body= "Program ran on " + date.today().strftime("%b-%d") + ". Homers hit by: \n" + nhl)
 
+        lu = LastUpdate(lu=rightnow.strftime("%b %d %H:%M"),id=1,parent=ndb.Key('Project','Wong'))
+        lu.put()
         self.response.write("Done")
+
 
 update = ndb.toplevel(webapp2.WSGIApplication([(r'/', UpdateJob),],debug=True))

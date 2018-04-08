@@ -1,9 +1,10 @@
-import logging
 import webapp2
 import cloudstorage
 import os
 from google.appengine.api import app_identity
+from google.appengine.ext import ndb
 from wp import HomerNDB
+
 
 def bucket_name():
     os.environ.get('BUCKET_NAME',app_identity.get_default_gcs_bucket_name())
@@ -21,7 +22,7 @@ def create_file(filename,content):
         cloudstorage_file.close()
 
 def makefile():
-    hdat = HomerNDB.query().fetch()
+    hdat = HomerNDB.query(ancestor=ndb.Key('Project','Wong')).fetch()
     printmat=[]
     for h in hdat:
         printmat.append(",".join(map(str,[h.player, h.gid, h.hr, h.month, h.pnum]))+"\n")
@@ -30,8 +31,17 @@ def makefile():
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
+        # Dummy key for lastupdate
+#        hdat = HomerNDB.query().fetch()
+#        for h in hdat:
+#            hdatnew = HomerNDB(player=h.player,gid=h.gid,hr=h.hr,month=h.month,pnum=h.pnum,date=h.date,timestamp=h.timestamp,
+#                               id=h.player+h.gid, parent=ndb.Key('Project','Wong'))
+#            hdatnew.put()
+#        lu = ndb.Key(LastUpdate,1).get()
+#        lu2 = LastUpdate(lu=lu.lu,id=1,parent=ndb.Key('Project','Wong'))
+#        lu2.put()
         # do whatever needs to be done to the homer entities here
-        z=makefile()
+        makefile()
         self.response.write("Done")
 
 

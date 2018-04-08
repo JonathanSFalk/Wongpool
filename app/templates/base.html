@@ -31,7 +31,7 @@
                     <li><a href="{{ url_for('index') }}"><h4>Home</h4></a></li>
                 </ul>
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('standings')  }}"><h4>Standings Through <mark><strong><em>{{dmax}}</em></strong></mark></h4></a></li>
+                    <li><a href="{{ url_for('standings')  }}"><h4>Standings as of <mark><strong><em>{{lu}}</em></strong></mark></h4></a></li>
                 </ul>
 
                 <ul class="nav navbar-nav navbar-right">
@@ -49,14 +49,12 @@
 {% block content %}
     <div class="container">
         {# application content needs to be provided in the app_content block #}
-        {% block app_content %}{% endblock %}
+        {% block app_content %}{% endblock %}</div>
 <hr>
- <style type="text/css"> .alignleft {float: left;} .alignright {float: right;}></style>
-    <div id="textbox">
-  <p class="alignleft">Wongpool.com Version 2.0</p>
-  <p class="alignright">Email <a href="mailto:webmaster@wongpool.com">webmaster@wongpool.com</a> with any questions or problems.</p>
+    <style>.eqi-container {display: flex; justify-content: space-between;}</style>
+    <div class="eqi-container">
+  <div>Wongpool.com Version 2.0</div><div>Last Update: {{ lu }}</div><div>Email <a href="mailto:webmaster@wongpool.com">webmaster@wongpool.com</a> with any questions or problems.</div>
     </div>
- <div style="clear: both;"></div>
 {% endblock %}
 
 

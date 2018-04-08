@@ -1,4 +1,4 @@
-
+import logging
 from datetime import date, timedelta
 from google.appengine.ext import ndb
 import os
@@ -13,11 +13,13 @@ class HomerNDB(ndb.Model):
     pnum=ndb.IntegerProperty()
     date=ndb.StringProperty()
     timestamp=ndb.StringProperty()
+    _use_cache = False
+    _memcache_timeout=2
 
 class Team:
     def __init__(self,data):
-        self.wongid = int(data[1])
-        self.name = data[0]
+        self.wongid = int(data[0])
+        self.name = data[1]
         self.players = [0,0,0,0,0,0,0,0]
         for j in range(0,8):
             self.players[j] = int(data[j + 2])
@@ -228,7 +230,8 @@ def total(team,month):
     mlist = []
     for j in plist:
         if month <> "Total":
-#            logging.info("Team:"+str(q[0].wongid) + "Player:" + str(j) + "M:" + str(month-4))
+            if j==0:
+                logging.error("Team:"+str(q[0].wongid) + "Player:" + str(j) + "M:" + str(month-4))
             mlist.append(phmdat[j][month - 4])
         else:
             mlist.append(sum(phmdat[j]))
@@ -242,7 +245,7 @@ def monthstandings(month):
         mstandings.append([t.wongid,t.name,total(t.wongid,month)])
     return sorted(mstandings,key=lambda x: (-x[2] * 10000 + teamsort.index(x[1])))
 
-def top5(type,standlist):
+def top5(rowtype,standlist):
     # makes an appropriate list from a sorted standing list
     best = standlist[0][2]
     tiercount = [len([x for x in standlist if x[2]==best])]
@@ -253,16 +256,27 @@ def top5(type,standlist):
     result=[]
     for i in tiercount:
         for j in range(index,index+i):
-            result.append([type,str(index+1)+". " + standlist[j][1] + " " + str(standlist[j][2])])
+            result.append([rowtype,str(index+1)+". " + standlist[j][1] + " " + str(standlist[j][2])])
         index = index + i
     return result
 
+def makephm(pdat,hdat):
+    phmdat= {}
+    for p in pdat:
+        phmvec = [0,0,0,0,0,0]
+        for m in range(0,6):
+            phmvec[m] = sum([x.hr for x in hdat if x.pnum == p.wongid and x.month == m + 4])
+        phmdat[p.wongid] = phmvec
+    return phmdat
+
+def makehdat():
+    return HomerNDB.query(ancestor=ndb.Key('Project','Wong')).fetch(use_cache=False)
 
 def init(pfname,tfname):
 
     # Read in all the data
     pdat = makenames(Player,pfname)
-    hdat = HomerNDB.query().fetch()
+    hdat = makehdat()
 # if there are no homers, restart the database
 #    if len(hdat)==0:
 #        from update import makehomer,gethomers
@@ -280,12 +294,8 @@ def init(pfname,tfname):
     else:
         dmaxstr = "3/28"
         dmax = date(2018,3,28)
-    phmdat= {}
-    for p in pdat:
-        phmvec = [0,0,0,0,0,0]
-        for m in range(0,6):
-            phmvec[m] = sum([x.hr for x in hdat if x.pnum == p.wongid and x.month == m + 4])
-        phmdat[p.wongid] = phmvec
+
+    phmdat = makephm(pdat,hdat)
 
     pnames = {}
     for p in pdat:
@@ -306,6 +316,6 @@ def init(pfname,tfname):
     return [pdat,hdat,tdat,phmdat,dmax,dmaxstr,pnames,pnums,psort]
 
 pfname="players2018.csv"
-tfname="entries"
+tfname="teams2018.csv"
 # phfname="phmdat"
 pdat,hdat,tdat,phmdat,dmax,dmaxstr,pnames,pnums,psort = init(pfname,tfname)

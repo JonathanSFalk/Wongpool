@@ -36,7 +36,7 @@ def get_scoreboard(year, month, day):
     """Return the game file for a certain day matching certain criteria."""
     try:
         data = urlopen(BASE_URL.format(year, month, day
-                                       ) + 'scoreboard.xml')
+                                       ) + 'scoreboard.xml',timeout=45)
     except HTTPError:
         data = os.path.join(PWD, 'default.xml')
     return data
@@ -48,7 +48,7 @@ def get_box_score(game_id):
     try:
         return urlopen(GAME_URL.format(year, month, day,
                                        game_id,
-                                       'boxscore.xml'))
+                                       'boxscore.xml'),timeout=45)
     except HTTPError:
         raise ValueError('Could not find a game with that id.')
 
@@ -58,7 +58,7 @@ def get_raw_box_score(game_id):
     try:
         return urlopen(GAME_URL.format(year, month, day,
                                        game_id,
-                                       'rawboxscore.xml'))
+                                       'rawboxscore.xml'),timeout=45)
     except HTTPError:
         raise ValueError('Could not find a game with that id.')
 
@@ -69,7 +69,7 @@ def get_game_events(game_id):
     try:
         return urlopen(GAME_URL.format(year, month, day,
                                        game_id,
-                                       'game_events.xml'))
+                                       'game_events.xml'),timeout=45)
     except HTTPError:
         raise ValueError('Could not find a game with that id.')
 
@@ -80,7 +80,7 @@ def get_overview(game_id):
     try:
         return urlopen(GAME_URL.format(year, month, day,
                                        game_id,
-                                       'linescore.xml'))
+                                       'linescore.xml'),timeout=45)
     except HTTPError:
         raise ValueError('Could not find a game with that id.')
 
@@ -91,7 +91,7 @@ def get_players(game_id):
     try:
         return urlopen(GAME_URL.format(year, month, day,
                                        game_id,
-                                       "players.xml"))
+                                       "players.xml"),timeout=45)
     except HTTPError:
         raise ValueError('Could not find a game with that id.')
 
